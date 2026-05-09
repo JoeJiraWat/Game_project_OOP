@@ -7,7 +7,7 @@ struct Card_data{
     enum card_type{Boom,Default,Skip,Favor,See_the_future
                     ,Shuffle,Nope,Draw_from_the_bottom,Cat_card} type;
     std::string description;
-    enum Effect{KaBoom,Defuse_a_boom,Skip_turn,Favor,see_Card,Shuffle_deck,Cancel_effect,Draw_from_the_Bottom,Normal_Card} effect;                
+    enum Effect{Explosion,Defuse_a_boom,Skip_turn,Favor,see_Card,Shuffle_deck,Cancel_effect,Draw_from_the_Bottom,Normal_Card} effect;                
 };
 class card{
     private:
