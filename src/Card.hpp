@@ -13,7 +13,6 @@ class card{
     private:
         std::string type;
     public:
-        card(std::string t);
         std::string getType();
 };
 class Boom: public card{
