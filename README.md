@@ -4,13 +4,6 @@
 tech stack ใช้ raylib เป็น GUI
 และยึดโครงสร้างคลาสตาม Class Diagram ที่ให้มา
 
-## วิธี Build
-
-```sh
-cmake -S . -B build
-cmake --build build
-```
-
 ## วิธี Run
 
 ```sh
