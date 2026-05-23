@@ -5,7 +5,7 @@
 int main()
 {
     SetConfigFlags(FLAG_WINDOW_RESIZABLE | FLAG_MSAA_4X_HINT);
-    InitWindow(1400, 900, "Cat Bomb - C++ GUI");
+    InitWindow(1400, 900, "แมวระเบิด");
     InitAudioDevice();
     SetTargetFPS(60);
 

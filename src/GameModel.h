@@ -55,42 +55,42 @@ inline std::string toString(CardType type)
 {
     switch (type) {
     case CardType::Boom:
-        return "Boom";
+        return "ระเบิด";
     case CardType::Defuse:
-        return "Defuse";
+        return "กู้ระเบิด";
     case CardType::Skip:
-        return "Skip";
+        return "ข้ามตา";
     case CardType::Favor:
-        return "Favor";
+        return "ขอความช่วยเหลือ";
     case CardType::DrawFromBottom:
-        return "Draw from Bottom";
+        return "จั่วจากล่างสุด";
     case CardType::SeeTheFuture:
-        return "See the Future";
+        return "ดูอนาคต";
     case CardType::Shuffle:
-        return "Shuffle";
+        return "สับกอง";
     case CardType::Nope:
-        return "Nope";
+        return "ยกเลิก";
     case CardType::CatCard:
-        return "Cat Card";
+        return "การ์ดแมว";
     }
-    return "Unknown";
+    return "ไม่ทราบ";
 }
 
 inline std::string toString(CatType type)
 {
     switch (type) {
     case CatType::Cat1:
-        return "Cat1";
+        return "แมว 1";
     case CatType::Cat2:
-        return "Cat2";
+        return "แมว 2";
     case CatType::Cat3:
-        return "Cat3";
+        return "แมว 3";
     case CatType::Cat4:
-        return "Cat4";
+        return "แมว 4";
     case CatType::Cat5:
-        return "Cat5";
+        return "แมว 5";
     }
-    return "Cat";
+    return "แมว";
 }
 
 inline std::array<CatType, 5> allCatTypes()
@@ -129,7 +129,7 @@ protected:
 class Boom : public Card {
 public:
     Boom()
-        : Card(CardType::Boom, "Boom", "Draw this without Defuse and you are out.", Effect::KaBoom)
+        : Card(CardType::Boom, "ระเบิด", "ถ้าจั่วได้แล้วไม่มีการ์ดกู้ระเบิด คุณจะออกจากเกม", Effect::KaBoom)
     {
     }
 
@@ -140,7 +140,7 @@ public:
 class Defuse : public Card {
 public:
     Defuse()
-        : Card(CardType::Defuse, "Defuse", "Automatically saves you from one Boom.", Effect::DefuseABoom)
+        : Card(CardType::Defuse, "กู้ระเบิด", "ใช้โดยอัตโนมัติเมื่อคุณจั่วเจอระเบิด", Effect::DefuseABoom)
     {
     }
 
@@ -151,7 +151,7 @@ public:
 class Skip : public Card {
 public:
     Skip()
-        : Card(CardType::Skip, "Skip", "End your turn without drawing.", Effect::SkipTurn)
+        : Card(CardType::Skip, "ข้ามตา", "จบตาของคุณทันทีโดยไม่ต้องจั่วการ์ด", Effect::SkipTurn)
     {
     }
 
@@ -162,7 +162,7 @@ public:
 class Favor : public Card {
 public:
     Favor()
-        : Card(CardType::Favor, "Favor", "Choose a player. They give you a random card.", Effect::Favor)
+        : Card(CardType::Favor, "ขอความช่วยเหลือ", "เลือกผู้เล่นหนึ่งคน แล้วขโมยการ์ดแบบสุ่มจากเขา", Effect::Favor)
     {
     }
 
@@ -173,7 +173,7 @@ public:
 class SeeTheFuture : public Card {
 public:
     SeeTheFuture()
-        : Card(CardType::SeeTheFuture, "See the Future", "Peek at the top three cards.", Effect::SeeCard)
+        : Card(CardType::SeeTheFuture, "ดูอนาคต", "แอบดูการ์ด 3 ใบบนสุดของกองจั่ว", Effect::SeeCard)
     {
     }
 
@@ -184,7 +184,7 @@ public:
 class Shuffle : public Card {
 public:
     Shuffle()
-        : Card(CardType::Shuffle, "Shuffle", "Shuffle the draw pile.", Effect::ShuffleDeck)
+        : Card(CardType::Shuffle, "สับกอง", "สับกองจั่วใหม่ทั้งหมด", Effect::ShuffleDeck)
     {
     }
 
@@ -195,7 +195,7 @@ public:
 class Nope : public Card {
 public:
     Nope()
-        : Card(CardType::Nope, "Nope", "Cancel Favor or a cat combo when prompted.", Effect::CancelEffect)
+        : Card(CardType::Nope, "ยกเลิก", "ใช้ยกเลิกการ์ดขอความช่วยเหลือหรือคอมโบแมวเมื่อระบบถาม", Effect::CancelEffect)
     {
     }
 
@@ -206,7 +206,7 @@ public:
 class DrawFromBottom : public Card {
 public:
     DrawFromBottom()
-        : Card(CardType::DrawFromBottom, "Draw from Bottom", "Draw the bottom card and end your turn.", Effect::DrawFromTheBottom)
+        : Card(CardType::DrawFromBottom, "จั่วจากล่างสุด", "จั่วการ์ดใบล่างสุดของกอง แล้วจบตาของคุณ", Effect::DrawFromTheBottom)
     {
     }
 
@@ -217,7 +217,7 @@ public:
 class CatCard : public Card {
 public:
     explicit CatCard(CatType type)
-        : Card(CardType::CatCard, toString(type), "Combo cat cards to steal from others.", Effect::NormalCard)
+        : Card(CardType::CatCard, toString(type), "ใช้รวมเป็นคอมโบแมวเพื่อขโมยการ์ดจากผู้เล่นอื่น", Effect::NormalCard)
         , quantity_Cat_card(1)
         , Cat_type(type)
     {
@@ -258,7 +258,7 @@ inline std::unique_ptr<Card> createCard(CardType type, CatType catType = CatType
 
 class Player {
 public:
-    Player(std::string playerName = "Player")
+    Player(std::string playerName = "ผู้เล่น")
         : name(std::move(playerName))
     {
     }
@@ -416,18 +416,18 @@ public:
     void create_room()
     {
         roomCode_ = "LOCAL-ROOM";
-        eventLog_.push_back("Created local room LOCAL-ROOM.");
+        eventLog_.push_back("สร้างห้องในเครื่อง LOCAL-ROOM แล้ว");
     }
 
     void join_room(const std::string& code)
     {
         roomCode_ = code;
-        eventLog_.push_back("Joined room " + code + ".");
+        eventLog_.push_back("เข้าห้อง " + code + " แล้ว");
     }
 
     void rpc_send_card_action(int card_index)
     {
-        eventLog_.push_back("Sent local card action " + std::to_string(card_index) + ".");
+        eventLog_.push_back("ส่งคำสั่งเล่นการ์ดในเครื่อง หมายเลข " + std::to_string(card_index));
     }
 
     const std::vector<std::string>& events() const { return eventLog_; }
@@ -462,7 +462,7 @@ public:
 class TwoIdenticalCatsRule : public SpecialRule {
 public:
     TwoIdenticalCatsRule()
-        : SpecialRule("Two Identical Cats", 2)
+        : SpecialRule("แมวเหมือนกัน 2 ใบ", 2)
     {
     }
 
@@ -477,7 +477,7 @@ public:
 class ThreeIdenticalCatsRule : public SpecialRule {
 public:
     ThreeIdenticalCatsRule()
-        : SpecialRule("Three Identical Cats", 3)
+        : SpecialRule("แมวเหมือนกัน 3 ใบ", 3)
     {
     }
 
@@ -492,7 +492,7 @@ public:
 class FiveDifferentCatsRule : public SpecialRule {
 public:
     FiveDifferentCatsRule()
-        : SpecialRule("Five Different Cats", 5)
+        : SpecialRule("แมวต่างกัน 5 ใบ", 5)
     {
     }
 
@@ -555,7 +555,7 @@ public:
         int configuredPlayerCount = playerNames.empty() ? 4 : static_cast<int>(playerNames.size());
         configuredPlayerCount = std::clamp(configuredPlayerCount, 2, 4);
         for (int i = 0; i < configuredPlayerCount; ++i) {
-            std::string fallbackName = "Player " + std::to_string(i + 1);
+            std::string fallbackName = "ผู้เล่น " + std::to_string(i + 1);
             std::string configuredName = i < static_cast<int>(playerNames.size()) ? playerNames[i] : fallbackName;
             players.emplace_back(configuredName.empty() ? fallbackName : configuredName);
         }
@@ -611,9 +611,9 @@ public:
         }
         players[currentPlayerIndex].isTurn = true;
         phase_ = GamePhase::PassDevice;
-        banner_ = "Pass to " + players[currentPlayerIndex].name;
-        addLog("Game started for " + std::to_string(players.size()) + " local players.");
-        addLog(players[currentPlayerIndex].name + " begins.");
+        banner_ = "ส่งเครื่องให้ " + players[currentPlayerIndex].name;
+        addLog("เริ่มเกมสำหรับผู้เล่น " + std::to_string(players.size()) + " คน");
+        addLog(players[currentPlayerIndex].name + " เริ่มก่อน");
         syncCounts();
     }
 
@@ -622,10 +622,10 @@ public:
         winnerIndex_ = findWinner();
         phase_ = GamePhase::GameOver;
         if (winnerIndex_ >= 0) {
-            banner_ = players[winnerIndex_].name + " wins!";
-            addLog(players[winnerIndex_].name + " is the last cat standing.");
+            banner_ = "ผู้ชนะคือ " + players[winnerIndex_].name;
+            addLog(players[winnerIndex_].name + " เป็นผู้รอดชีวิตคนสุดท้าย");
         } else {
-            banner_ = "Game over";
+            banner_ = "จบเกม";
         }
     }
 
@@ -654,7 +654,7 @@ public:
     void shuffle_deck()
     {
         std::shuffle(deck.begin(), deck.end(), rng_);
-        addLog("Draw pile shuffled.");
+        addLog("สับกองจั่วแล้ว");
     }
 
     void draw_card(int player_id, bool fromBottom = false)
@@ -670,13 +670,13 @@ public:
 
         const std::string drawnName = drawn->name();
         if (drawn->type() == CardType::Boom) {
-            addLog(players[player_id].name + " drew Boom.");
+            addLog(players[player_id].name + " จั่วได้ระเบิด");
             resolveBoom(player_id, std::move(drawn));
             return;
         }
 
         players[player_id].draw(std::move(drawn));
-        addLog(players[player_id].name + " drew " + drawnName + ".");
+        addLog(players[player_id].name + " จั่วได้ " + drawnName);
         endTurn();
     }
 
@@ -726,7 +726,7 @@ public:
         pendingTarget_ = -1;
         selectedCard.clear();
         phase_ = GamePhase::Playing;
-        banner_ = players[currentPlayerIndex].name + "'s turn";
+        banner_ = "ตาของ " + players[currentPlayerIndex].name;
         syncCounts();
     }
 
@@ -742,19 +742,19 @@ public:
 
         CardType type = player.myCard[cardIndex]->type();
         if (type == CardType::Defuse) {
-            addLog("Keep Defuse in hand. It triggers automatically against Boom.");
+            addLog("เก็บการ์ดกู้ระเบิดไว้ในมือ การ์ดนี้จะใช้เองเมื่อจั่วเจอระเบิด");
             return false;
         }
         if (type == CardType::Boom) {
-            addLog("Boom cannot be played from hand.");
+            addLog("ไม่สามารถเล่นการ์ดระเบิดจากมือได้");
             return false;
         }
         if (type == CardType::CatCard) {
-            addLog("Use the cat combo buttons for Cat cards.");
+            addLog("ใช้ปุ่มคอมโบแมวสำหรับการ์ดแมว");
             return false;
         }
         if (type == CardType::Nope) {
-            addLog("Nope is used only when the GUI asks for a response.");
+            addLog("การ์ดยกเลิกจะใช้ได้เมื่อระบบถามเท่านั้น");
             return false;
         }
 
@@ -762,7 +762,7 @@ public:
             pendingAction_ = PendingAction::Favor;
             pendingCardIndex_ = cardIndex;
             phase_ = GamePhase::ChooseTarget;
-            banner_ = "Choose a player for Favor";
+            banner_ = "เลือกผู้เล่นสำหรับการ์ดขอความช่วยเหลือ";
             return true;
         }
 
@@ -770,7 +770,7 @@ public:
         const std::string cardName = card->name();
         discard(std::move(card));
         NetworkManager::instance().rpc_send_card_action(cardIndex);
-        addLog(player.name + " played " + cardName + ".");
+        addLog(player.name + " เล่นการ์ด " + cardName);
         discardPile.back()->OnUse(*this);
         syncCounts();
         return true;
@@ -780,7 +780,7 @@ public:
     {
         if (phase_ == GamePhase::PassDevice) {
             phase_ = GamePhase::Playing;
-            banner_ = players[currentPlayerIndex].name + "'s turn";
+            banner_ = "ตาของ " + players[currentPlayerIndex].name;
         }
     }
 
@@ -790,12 +790,12 @@ public:
             return;
         }
         if (!specialRules[0]->checkCondition(players[currentPlayerIndex])) {
-            addLog("Need two identical Cat cards.");
+            addLog("ต้องมีการ์ดแมวชนิดเดียวกัน 2 ใบ");
             return;
         }
         pendingAction_ = PendingAction::TwoCats;
         phase_ = GamePhase::ChooseTarget;
-        banner_ = "Choose a player for Two Cats";
+        banner_ = "เลือกผู้เล่นสำหรับคอมโบแมว 2 ใบ";
     }
 
     void requestThreeCatsRule()
@@ -804,12 +804,12 @@ public:
             return;
         }
         if (!specialRules[1]->checkCondition(players[currentPlayerIndex])) {
-            addLog("Need three identical Cat cards.");
+            addLog("ต้องมีการ์ดแมวชนิดเดียวกัน 3 ใบ");
             return;
         }
         pendingAction_ = PendingAction::ThreeCats;
         phase_ = GamePhase::ChooseTarget;
-        banner_ = "Choose a player for Three Cats";
+        banner_ = "เลือกผู้เล่นสำหรับคอมโบแมว 3 ใบ";
     }
 
     void requestFiveCatsRule()
@@ -818,16 +818,16 @@ public:
             return;
         }
         if (!specialRules[2]->checkCondition(players[currentPlayerIndex])) {
-            addLog("Need five different Cat cards.");
+            addLog("ต้องมีการ์ดแมวต่างชนิดกัน 5 ใบ");
             return;
         }
         if (discardPile.empty()) {
-            addLog("Discard pile is empty.");
+            addLog("กองทิ้งยังว่างอยู่");
             return;
         }
         pendingAction_ = PendingAction::None;
         phase_ = GamePhase::ChooseDiscardCard;
-        banner_ = "Choose one card from discard";
+        banner_ = "เลือกการ์ดหนึ่งใบจากกองทิ้ง";
     }
 
     void chooseTarget(int targetId)
@@ -840,7 +840,7 @@ public:
 
         if (pendingAction_ == PendingAction::ThreeCats) {
             phase_ = GamePhase::ChooseCardName;
-            banner_ = "Name a card to steal";
+            banner_ = "เลือกชื่อการ์ดที่ต้องการขโมย";
             return;
         }
 
@@ -864,7 +864,7 @@ public:
         std::string cardName = discardPile[discardIndex]->name();
         specialRules[2]->executeAction(*this, currentPlayerIndex, currentPlayerIndex, cardName);
         phase_ = GamePhase::Playing;
-        banner_ = players[currentPlayerIndex].name + "'s turn";
+        banner_ = "ตาของ " + players[currentPlayerIndex].name;
         syncCounts();
     }
 
@@ -877,17 +877,17 @@ public:
         if (useNope && players[nopeResponder_].hasCard(CardType::Nope)) {
             int nopeIndex = players[nopeResponder_].findFirst(CardType::Nope);
             discard(players[nopeResponder_].removeCardAt(nopeIndex));
-            addLog(players[nopeResponder_].name + " played Nope. Action cancelled.");
+            addLog(players[nopeResponder_].name + " เล่นการ์ดยกเลิก การกระทำถูกยกเลิก");
             pendingAction_ = PendingAction::None;
             pendingTarget_ = -1;
             selectedCard.clear();
             phase_ = GamePhase::Playing;
-            banner_ = players[currentPlayerIndex].name + "'s turn";
+            banner_ = "ตาของ " + players[currentPlayerIndex].name;
             syncCounts();
             return;
         }
 
-        addLog(players[nopeResponder_].name + " did not use Nope.");
+        addLog(players[nopeResponder_].name + " ไม่ใช้การ์ดยกเลิก");
         executePendingAction();
     }
 
@@ -895,7 +895,7 @@ public:
     {
         if (phase_ == GamePhase::FutureView) {
             phase_ = GamePhase::Playing;
-            banner_ = players[currentPlayerIndex].name + "'s turn";
+            banner_ = "ตาของ " + players[currentPlayerIndex].name;
             futureCards_.clear();
         }
     }
@@ -909,13 +909,13 @@ public:
         int insertPos = 0;
         if (position == 0) {
             insertPos = static_cast<int>(deck.size());
-            addLog("Boom placed near the top.");
+            addLog("วางระเบิดไว้ใกล้บนสุดของกอง");
         } else if (position == 1) {
             insertPos = static_cast<int>(deck.size() / 2);
-            addLog("Boom placed in the middle.");
+            addLog("วางระเบิดไว้กลางกอง");
         } else {
             insertPos = 0;
-            addLog("Boom placed at the bottom.");
+            addLog("วางระเบิดไว้ล่างสุดของกอง");
         }
         add_card_to_deck(std::move(pendingBoom_), insertPos);
         endTurn();
@@ -924,14 +924,14 @@ public:
     void skipCurrentTurn()
     {
         is_skipping_draw = true;
-        addLog(players[currentPlayerIndex].name + " skipped drawing.");
+        addLog(players[currentPlayerIndex].name + " ข้ามการจั่ว");
         endTurn();
     }
 
     void startFavorSelection()
     {
         phase_ = GamePhase::ChooseTarget;
-        banner_ = "Choose a player for Favor";
+        banner_ = "เลือกผู้เล่นสำหรับการ์ดขอความช่วยเหลือ";
     }
 
     void revealFuture(int amount)
@@ -943,10 +943,10 @@ public:
             futureCards_.push_back(card->name());
         }
         if (futureCards_.empty()) {
-            futureCards_.push_back("Deck is empty");
+            futureCards_.push_back("กองจั่วว่างแล้ว");
         }
         phase_ = GamePhase::FutureView;
-        banner_ = "Top cards";
+        banner_ = "การ์ดบนสุดของกอง";
     }
 
     void useDrawFromBottom()
@@ -1014,12 +1014,12 @@ public:
         }
         auto stolen = players[targetPlayerId].takeRandomCard(rng_);
         if (!stolen) {
-            addLog(players[targetPlayerId].name + " has no cards to steal.");
+            addLog(players[targetPlayerId].name + " ไม่มีการ์ดให้ขโมย");
             return;
         }
         std::string cardName = stolen->name();
         players[playerId].draw(std::move(stolen));
-        addLog(players[playerId].name + " stole a random card: " + cardName + ".");
+        addLog(players[playerId].name + " ขโมยการ์ดสุ่มได้ " + cardName);
     }
 
     void stealNamedCard(int playerId, int targetPlayerId, const std::string& cardName)
@@ -1029,11 +1029,11 @@ public:
         }
         auto stolen = players[targetPlayerId].takeNamedCard(cardName);
         if (!stolen) {
-            addLog(players[targetPlayerId].name + " does not have " + cardName + ".");
+            addLog(players[targetPlayerId].name + " ไม่มีการ์ด " + cardName);
             return;
         }
         players[playerId].draw(std::move(stolen));
-        addLog(players[playerId].name + " stole " + cardName + ".");
+        addLog(players[playerId].name + " ขโมยการ์ด " + cardName);
     }
 
     bool takeFromDiscardByName(int playerId, const std::string& cardName)
@@ -1046,12 +1046,12 @@ public:
                 auto card = std::move(discardPile[i]);
                 discardPile.erase(discardPile.begin() + i);
                 players[playerId].draw(std::move(card));
-                addLog(players[playerId].name + " took " + cardName + " from discard.");
+                addLog(players[playerId].name + " หยิบ " + cardName + " จากกองทิ้ง");
                 syncCounts();
                 return true;
             }
         }
-        addLog(cardName + " is no longer in discard.");
+        addLog(cardName + " ไม่อยู่ในกองทิ้งแล้ว");
         return false;
     }
 
@@ -1113,15 +1113,15 @@ private:
             discard(players[playerId].removeCardAt(defuseIndex));
             pendingBoom_ = std::move(boomCard);
             phase_ = GamePhase::ChooseBoomPosition;
-            banner_ = players[playerId].name + " defused Boom";
-            addLog(players[playerId].name + " used Defuse.");
+            banner_ = players[playerId].name + " กู้ระเบิดสำเร็จ";
+            addLog(players[playerId].name + " ใช้การ์ดกู้ระเบิด");
             return;
         }
 
         discard(std::move(boomCard));
         players[playerId].isAlive = false;
         players[playerId].isActive = false;
-        addLog(players[playerId].name + " exploded and is out.");
+        addLog(players[playerId].name + " ระเบิดและออกจากเกม");
         if (activePlayerCount() <= 1) {
             EndGame();
             return;
@@ -1139,8 +1139,8 @@ private:
         advanceToNextAlive();
         players[currentPlayerIndex].isTurn = true;
         phase_ = GamePhase::PassDevice;
-        banner_ = "Pass to " + players[currentPlayerIndex].name;
-        addLog("Turn passes to " + players[currentPlayerIndex].name + ".");
+        banner_ = "ส่งเครื่องให้ " + players[currentPlayerIndex].name;
+        addLog("เปลี่ยนตาเป็น " + players[currentPlayerIndex].name);
         syncCounts();
     }
 
@@ -1190,33 +1190,33 @@ private:
                 return;
             }
             auto card = players[currentPlayerIndex].removeCardAt(pendingCardIndex_);
-            addLog(players[currentPlayerIndex].name + " played Favor.");
+            addLog(players[currentPlayerIndex].name + " เล่นการ์ดขอความช่วยเหลือ");
             discard(std::move(card));
         } else if (pendingAction_ == PendingAction::TwoCats) {
             auto catType = players[currentPlayerIndex].firstCatWithCount(2);
             if (!catType.has_value() || !discardCatsFromPlayer(currentPlayerIndex, catType.value(), 2)) {
-                addLog("Two Cats rule failed.");
+                addLog("คอมโบแมว 2 ใบไม่สำเร็จ");
                 pendingAction_ = PendingAction::None;
                 phase_ = GamePhase::Playing;
                 return;
             }
-            addLog(players[currentPlayerIndex].name + " played Two Identical Cats.");
+            addLog(players[currentPlayerIndex].name + " เล่นคอมโบแมวเหมือนกัน 2 ใบ");
         } else if (pendingAction_ == PendingAction::ThreeCats) {
             auto catType = players[currentPlayerIndex].firstCatWithCount(3);
             if (!catType.has_value() || !discardCatsFromPlayer(currentPlayerIndex, catType.value(), 3)) {
-                addLog("Three Cats rule failed.");
+                addLog("คอมโบแมว 3 ใบไม่สำเร็จ");
                 pendingAction_ = PendingAction::None;
                 phase_ = GamePhase::Playing;
                 return;
             }
-            addLog(players[currentPlayerIndex].name + " played Three Identical Cats.");
+            addLog(players[currentPlayerIndex].name + " เล่นคอมโบแมวเหมือนกัน 3 ใบ");
             selectedCard = cardName;
         }
 
         if (hasNope(pendingTarget_)) {
             nopeResponder_ = pendingTarget_;
             phase_ = GamePhase::ChooseNopeResponse;
-            banner_ = players[nopeResponder_].name + " can use Nope";
+            banner_ = players[nopeResponder_].name + " สามารถใช้การ์ดยกเลิกได้";
             return;
         }
 
@@ -1235,7 +1235,7 @@ private:
         pendingTarget_ = -1;
         selectedCard.clear();
         phase_ = GamePhase::Playing;
-        banner_ = players[currentPlayerIndex].name + "'s turn";
+        banner_ = "ตาของ " + players[currentPlayerIndex].name;
         syncCounts();
     }
 
@@ -1260,7 +1260,7 @@ inline void TwoIdenticalCatsRule::executeAction(GameManager& gm, int playerId, i
 inline void ThreeIdenticalCatsRule::executeAction(GameManager& gm, int playerId, int targetPlayerId, const std::string& targetCardName)
 {
     if (targetCardName.empty()) {
-        gm.addLog("No card was named.");
+        gm.addLog("ยังไม่ได้เลือกชื่อการ์ด");
         return;
     }
     gm.stealNamedCard(playerId, targetPlayerId, targetCardName);
@@ -1269,7 +1269,7 @@ inline void ThreeIdenticalCatsRule::executeAction(GameManager& gm, int playerId,
 inline void FiveDifferentCatsRule::executeAction(GameManager& gm, int playerId, int, const std::string& targetCardName)
 {
     if (targetCardName.empty()) {
-        gm.addLog("Choose a discard card first.");
+        gm.addLog("เลือกการ์ดจากกองทิ้งก่อน");
         return;
     }
 
@@ -1277,20 +1277,20 @@ inline void FiveDifferentCatsRule::executeAction(GameManager& gm, int playerId, 
         return;
     }
     if (!gm.discardOneOfEachCatFromPlayer(playerId)) {
-        gm.addLog("Five Different Cats rule failed.");
+        gm.addLog("คอมโบแมวต่างกัน 5 ใบไม่สำเร็จ");
         return;
     }
-    gm.addLog(gm.players[playerId].name + " used Five Different Cats.");
+    gm.addLog(gm.players[playerId].name + " ใช้คอมโบแมวต่างกัน 5 ใบ");
 }
 
 inline void Boom::OnUse(GameManager& gm)
 {
-    gm.addLog("Boom waits in the draw pile.");
+    gm.addLog("การ์ดระเบิดรออยู่ในกองจั่ว");
 }
 
 inline void Defuse::OnUse(GameManager& gm)
 {
-    gm.addLog("Defuse is automatic when Boom is drawn.");
+    gm.addLog("การ์ดกู้ระเบิดจะใช้เองเมื่อจั่วเจอระเบิด");
 }
 
 inline void Skip::OnUse(GameManager& gm)
@@ -1315,7 +1315,7 @@ inline void Shuffle::OnUse(GameManager& gm)
 
 inline void Nope::OnUse(GameManager& gm)
 {
-    gm.addLog("Nope is waiting for a response window.");
+    gm.addLog("การ์ดยกเลิกจะใช้ได้เมื่อหน้าต่างตอบสนองปรากฏ");
 }
 
 inline void DrawFromBottom::OnUse(GameManager& gm)
@@ -1325,5 +1325,5 @@ inline void DrawFromBottom::OnUse(GameManager& gm)
 
 inline void CatCard::OnUse(GameManager& gm)
 {
-    gm.addLog("Cat cards work through combo rules.");
+    gm.addLog("การ์ดแมวใช้ผ่านกติกาคอมโบ");
 }

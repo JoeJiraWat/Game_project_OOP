@@ -4,6 +4,7 @@
 
 #include <initializer_list>
 #include <string>
+#include <vector>
 
 namespace {
 
@@ -59,11 +60,20 @@ bool loadReadableFont(Font& font)
         "/Library/Fonts/Artifakt Element Regular.ttf"
     };
 
+    std::vector<int> codepoints;
+    codepoints.reserve(256);
+    for (int cp = 32; cp <= 126; ++cp) {
+        codepoints.push_back(cp);
+    }
+    for (int cp = 0x0E00; cp <= 0x0E7F; ++cp) {
+        codepoints.push_back(cp);
+    }
+
     for (const char* path : candidates) {
         if (!FileExists(path)) {
             continue;
         }
-        font = LoadFontEx(path, 64, nullptr, 0);
+        font = LoadFontEx(path, 64, codepoints.data(), static_cast<int>(codepoints.size()));
         if (IsFontValid(font)) {
             SetTextureFilter(font.texture, TEXTURE_FILTER_BILINEAR);
             return true;

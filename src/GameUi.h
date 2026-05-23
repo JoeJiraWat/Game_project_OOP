@@ -33,9 +33,9 @@ private:
     int activeNameIndex_ = 0;
     bool showCardHelp_ = false;
     std::array<std::string, 4> playerNames_ {
-        "Player 1",
-        "Player 2",
-        "Player 3",
-        "Player 4"
+        "ผู้เล่น 1",
+        "ผู้เล่น 2",
+        "ผู้เล่น 3",
+        "ผู้เล่น 4"
     };
 };

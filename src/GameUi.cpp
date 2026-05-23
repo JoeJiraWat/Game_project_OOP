@@ -88,6 +88,36 @@ static bool pointInRect(Vector2 point, Rectangle rect)
     return point.x >= rect.x && point.x <= rect.x + rect.width && point.y >= rect.y && point.y <= rect.y + rect.height;
 }
 
+static void appendUtf8Codepoint(std::string& text, int codepoint)
+{
+    if (codepoint <= 0x7F) {
+        text.push_back(static_cast<char>(codepoint));
+    } else if (codepoint <= 0x7FF) {
+        text.push_back(static_cast<char>(0xC0 | ((codepoint >> 6) & 0x1F)));
+        text.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+    } else if (codepoint <= 0xFFFF) {
+        text.push_back(static_cast<char>(0xE0 | ((codepoint >> 12) & 0x0F)));
+        text.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+        text.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+    } else if (codepoint <= 0x10FFFF) {
+        text.push_back(static_cast<char>(0xF0 | ((codepoint >> 18) & 0x07)));
+        text.push_back(static_cast<char>(0x80 | ((codepoint >> 12) & 0x3F)));
+        text.push_back(static_cast<char>(0x80 | ((codepoint >> 6) & 0x3F)));
+        text.push_back(static_cast<char>(0x80 | (codepoint & 0x3F)));
+    }
+}
+
+static void popUtf8Codepoint(std::string& text)
+{
+    if (text.empty()) {
+        return;
+    }
+    text.pop_back();
+    while (!text.empty() && (static_cast<unsigned char>(text.back()) & 0xC0) == 0x80) {
+        text.pop_back();
+    }
+}
+
 static void drawTextureCover(const Texture2D& texture, Rectangle dest, Color tint = WHITE)
 {
     float scale = std::max(dest.width / static_cast<float>(texture.width), dest.height / static_cast<float>(texture.height));
@@ -299,8 +329,8 @@ static void drawPlayerPanels(GameManager& gm, float screenWidth)
         }
         drawPanel(rect, fill);
         DrawUiText(player.name.c_str(), static_cast<int>(rect.x + 14), static_cast<int>(rect.y + 12), 20, RAYWHITE);
-        std::string status = player.isAlive ? "Alive" : "Out";
-        std::string cards = std::to_string(player.myCard.size()) + " cards";
+        std::string status = player.isAlive ? "ยังอยู่" : "ออกแล้ว";
+        std::string cards = std::to_string(player.myCard.size()) + " ใบ";
         DrawUiText(status.c_str(), static_cast<int>(rect.x + 14), static_cast<int>(rect.y + 42), 16, player.isAlive ? Color { 174, 231, 184, 255 } : Color { 247, 128, 128, 255 });
         int cardsWidth = MeasureUiText(cards.c_str(), 16);
         DrawUiText(cards.c_str(), static_cast<int>(rect.x + rect.width - cardsWidth - 14), static_cast<int>(rect.y + 42), 16, Color { 235, 225, 205, 255 });
@@ -310,7 +340,7 @@ static void drawPlayerPanels(GameManager& gm, float screenWidth)
 static void drawLogPanel(GameManager& gm, Rectangle rect)
 {
     drawPanel(rect, Color { 38, 35, 32, 255 });
-    DrawUiText("Game Log", static_cast<int>(rect.x + 16), static_cast<int>(rect.y + 16), 22, RAYWHITE);
+    DrawUiText("บันทึกเกม", static_cast<int>(rect.x + 16), static_cast<int>(rect.y + 16), 22, RAYWHITE);
     float y = rect.y + 52;
     for (const auto& line : gm.logs()) {
         drawWrappedText(line, rect.x + 16, y, rect.width - 32, 15, Color { 229, 219, 203, 255 }, 2);
@@ -325,11 +355,11 @@ static void drawHand(GameManager& gm, Rectangle area, const AssetManager& assets
 {
     drawPanel(area, Color { 41, 38, 34, 255 });
     const Player& player = gm.players[gm.currentPlayerIndex];
-    DrawUiText((player.name + "'s Hand").c_str(), static_cast<int>(area.x + 16), static_cast<int>(area.y + 14), 22, RAYWHITE);
+    DrawUiText(("ไพ่ในมือของ " + player.name).c_str(), static_cast<int>(area.x + 16), static_cast<int>(area.y + 14), 22, RAYWHITE);
 
     int n = static_cast<int>(player.myCard.size());
     if (n == 0) {
-        DrawUiText("No cards.", static_cast<int>(area.x + 16), static_cast<int>(area.y + 58), 18, Color { 210, 200, 185, 255 });
+        DrawUiText("ไม่มีการ์ด", static_cast<int>(area.x + 16), static_cast<int>(area.y + 58), 18, Color { 210, 200, 185, 255 });
         return;
     }
 
@@ -371,8 +401,8 @@ static void drawActionArea(GameManager& gm, Rectangle rect)
 
     Rectangle deckRect { rect.x + 26, rect.y + 62, 128, 156 };
     Rectangle discardRect { rect.x + 184, rect.y + 62, 128, 156 };
-    drawDeckPile(deckRect, gm.deck_count, "Deck", Color { 244, 202, 82, 255 });
-    drawDeckPile(discardRect, gm.discardPile_count, "Discard", Color { 170, 126, 207, 255 });
+    drawDeckPile(deckRect, gm.deck_count, "กองจั่ว", Color { 244, 202, 82, 255 });
+    drawDeckPile(discardRect, gm.discardPile_count, "กองทิ้ง", Color { 170, 126, 207, 255 });
 
     if (!gm.discardPile.empty()) {
         DrawUiText(gm.discardPile.back()->name().c_str(), static_cast<int>(discardRect.x + 10), static_cast<int>(discardRect.y + discardRect.height - 28), 13, Color { 31, 28, 25, 255 });
@@ -381,16 +411,16 @@ static void drawActionArea(GameManager& gm, Rectangle rect)
     float bx = rect.x + 345;
     float by = rect.y + 65;
     bool playing = gm.phase() == GamePhase::Playing;
-    if (drawButton(Rectangle { bx, by, 170, 42 }, "Draw", playing && gm.deck_count > 0)) {
+    if (drawButton(Rectangle { bx, by, 170, 42 }, "จั่ว", playing && gm.deck_count > 0)) {
         gm.drawCurrentPlayer(false);
     }
-    if (drawButton(Rectangle { bx, by + 50, 170, 42 }, "2 Same Cats", playing && gm.specialRules[0]->checkCondition(gm.players[gm.currentPlayerIndex]))) {
+    if (drawButton(Rectangle { bx, by + 50, 170, 42 }, "แมวเหมือน 2", playing && gm.specialRules[0]->checkCondition(gm.players[gm.currentPlayerIndex]))) {
         gm.requestTwoCatsRule();
     }
-    if (drawButton(Rectangle { bx, by + 100, 170, 42 }, "3 Same Cats", playing && gm.specialRules[1]->checkCondition(gm.players[gm.currentPlayerIndex]))) {
+    if (drawButton(Rectangle { bx, by + 100, 170, 42 }, "แมวเหมือน 3", playing && gm.specialRules[1]->checkCondition(gm.players[gm.currentPlayerIndex]))) {
         gm.requestThreeCatsRule();
     }
-    if (drawButton(Rectangle { bx, by + 150, 170, 42 }, "5 Different Cats", playing && gm.specialRules[2]->checkCondition(gm.players[gm.currentPlayerIndex]) && !gm.discardPile.empty())) {
+    if (drawButton(Rectangle { bx, by + 150, 170, 42 }, "แมวต่าง 5", playing && gm.specialRules[2]->checkCondition(gm.players[gm.currentPlayerIndex]) && !gm.discardPile.empty())) {
         gm.requestFiveCatsRule();
     }
 }
@@ -412,18 +442,18 @@ static void drawModalBase(const std::string& title, const std::string& subtitle)
 
 static void drawPassDevice(GameManager& gm)
 {
-    std::string title = "Pass to " + gm.players[gm.currentPlayerIndex].name;
-    drawModalBase(title, "Click reveal when this player is ready.");
+    std::string title = "ส่งเครื่องให้ " + gm.players[gm.currentPlayerIndex].name;
+    drawModalBase(title, "กดเปิดมือเมื่อผู้เล่นคนนี้พร้อมแล้ว");
     int w = GetScreenWidth();
     int h = GetScreenHeight();
-    if (drawButton(Rectangle { w / 2.0f - 100, h / 2.0f + 54, 200, 52 }, "Reveal Hand")) {
+    if (drawButton(Rectangle { w / 2.0f - 100, h / 2.0f + 54, 200, 52 }, "เปิดมือ")) {
         gm.revealCurrentHand();
     }
 }
 
 static void drawTargetModal(GameManager& gm)
 {
-    drawModalBase(gm.banner(), "Choose one living opponent.");
+    drawModalBase(gm.banner(), "เลือกผู้เล่นที่ยังไม่ออกจากเกมหนึ่งคน");
     int w = GetScreenWidth();
     int h = GetScreenHeight();
     float startY = h / 2.0f - 54;
@@ -445,17 +475,17 @@ static std::vector<std::string> cardNameOptions()
         toString(CardType::SeeTheFuture),
         toString(CardType::Shuffle),
         toString(CardType::Nope),
-        "Cat1",
-        "Cat2",
-        "Cat3",
-        "Cat4",
-        "Cat5"
+        toString(CatType::Cat1),
+        toString(CatType::Cat2),
+        toString(CatType::Cat3),
+        toString(CatType::Cat4),
+        toString(CatType::Cat5)
     };
 }
 
 static void drawChooseCardNameModal(GameManager& gm)
 {
-    drawModalBase("Name a Card", "If the target has it, you steal it.");
+    drawModalBase("เลือกชื่อการ์ด", "ถ้าเป้าหมายมีการ์ดใบนั้น คุณจะขโมยได้");
     int w = GetScreenWidth();
     int h = GetScreenHeight();
     auto options = cardNameOptions();
@@ -476,7 +506,7 @@ static void drawChooseCardNameModal(GameManager& gm)
 
 static void drawDiscardChoiceModal(GameManager& gm)
 {
-    drawModalBase("Pick From Discard", "Five different cats trade for one discard card.");
+    drawModalBase("เลือกจากกองทิ้ง", "ใช้แมวต่างกัน 5 ใบเพื่อแลกการ์ดหนึ่งใบจากกองทิ้ง");
     int w = GetScreenWidth();
     int h = GetScreenHeight();
     float panelX = w / 2.0f - 230;
@@ -493,21 +523,21 @@ static void drawDiscardChoiceModal(GameManager& gm)
 static void drawNopeModal(GameManager& gm)
 {
     const int responder = gm.nopeResponder();
-    std::string name = responder >= 0 ? gm.players[responder].name : "Target";
-    drawModalBase(name + " can Nope", "Use Nope to cancel this action.");
+    std::string name = responder >= 0 ? gm.players[responder].name : "เป้าหมาย";
+    drawModalBase(name + " ใช้การ์ดยกเลิกได้", "ใช้การ์ดยกเลิกเพื่อหยุดการกระทำนี้");
     int w = GetScreenWidth();
     int h = GetScreenHeight();
-    if (drawButton(Rectangle { w / 2.0f - 170, h / 2.0f + 38, 150, 48 }, "Use Nope")) {
+    if (drawButton(Rectangle { w / 2.0f - 170, h / 2.0f + 38, 150, 48 }, "ใช้ยกเลิก")) {
         gm.respondNope(true);
     }
-    if (drawButton(Rectangle { w / 2.0f + 20, h / 2.0f + 38, 150, 48 }, "Pass")) {
+    if (drawButton(Rectangle { w / 2.0f + 20, h / 2.0f + 38, 150, 48 }, "ผ่าน")) {
         gm.respondNope(false);
     }
 }
 
 static void drawFutureModal(GameManager& gm)
 {
-    drawModalBase("See the Future", "Top of the deck is listed first.");
+    drawModalBase("ดูอนาคต", "ใบแรกคือการ์ดบนสุดของกองจั่ว");
     int w = GetScreenWidth();
     int h = GetScreenHeight();
     float y = h / 2.0f - 58;
@@ -518,33 +548,55 @@ static void drawFutureModal(GameManager& gm)
         DrawUiText(line.c_str(), w / 2 - lineWidth / 2, static_cast<int>(y), 24, RAYWHITE);
         y += 42;
     }
-    if (drawButton(Rectangle { w / 2.0f - 90, h / 2.0f + 96, 180, 44 }, "Close")) {
+    if (drawButton(Rectangle { w / 2.0f - 90, h / 2.0f + 96, 180, 44 }, "ปิด")) {
         gm.closeFutureView();
     }
 }
 
 static void drawBoomPositionModal(GameManager& gm)
 {
-    drawModalBase("Boom Defused", "Choose where to put the Boom back.");
+    drawModalBase("กู้ระเบิดสำเร็จ", "เลือกตำแหน่งที่จะวางระเบิดกลับเข้าไป");
     int w = GetScreenWidth();
     int h = GetScreenHeight();
-    if (drawButton(Rectangle { w / 2.0f - 210, h / 2.0f + 42, 130, 46 }, "Top")) {
+    if (drawButton(Rectangle { w / 2.0f - 210, h / 2.0f + 42, 130, 46 }, "บนสุด")) {
         gm.placePendingBoom(0);
     }
-    if (drawButton(Rectangle { w / 2.0f - 65, h / 2.0f + 42, 130, 46 }, "Middle")) {
+    if (drawButton(Rectangle { w / 2.0f - 65, h / 2.0f + 42, 130, 46 }, "กลาง")) {
         gm.placePendingBoom(1);
     }
-    if (drawButton(Rectangle { w / 2.0f + 80, h / 2.0f + 42, 130, 46 }, "Bottom")) {
+    if (drawButton(Rectangle { w / 2.0f + 80, h / 2.0f + 42, 130, 46 }, "ล่างสุด")) {
         gm.placePendingBoom(2);
     }
 }
 
 static bool drawGameOverModal(GameManager& gm)
 {
-    drawModalBase(gm.banner(), "Return to setup to play again.");
     int w = GetScreenWidth();
     int h = GetScreenHeight();
-    return drawButton(Rectangle { w / 2.0f - 100, h / 2.0f + 54, 200, 52 }, "Main Menu");
+    DrawRectangle(0, 0, w, h, Color { 0, 0, 0, 205 });
+
+    Rectangle panel { w / 2.0f - 360, h / 2.0f - 210, 720, 420 };
+    drawPanel(panel, Color { 45, 39, 34, 250 });
+    DrawUiText("จบเกม", static_cast<int>(panel.x + 296), static_cast<int>(panel.y + 34), 42, RAYWHITE);
+
+    std::string winnerName = gm.winnerIndex() >= 0 ? gm.players[gm.winnerIndex()].name : "ไม่พบผู้ชนะ";
+    std::string winnerLine = "ผู้ชนะคือ";
+    int winnerLineWidth = MeasureUiText(winnerLine.c_str(), 34);
+    DrawUiText(winnerLine.c_str(), static_cast<int>(panel.x + (panel.width - winnerLineWidth) / 2), static_cast<int>(panel.y + 106), 34, Color { 255, 226, 121, 255 });
+
+    int nameSize = 54;
+    while (nameSize > 30 && MeasureUiText(winnerName.c_str(), nameSize) > panel.width - 80) {
+        --nameSize;
+    }
+    int nameWidth = MeasureUiText(winnerName.c_str(), nameSize);
+    DrawUiText(winnerName.c_str(), static_cast<int>(panel.x + (panel.width - nameWidth) / 2), static_cast<int>(panel.y + 154), nameSize, RAYWHITE);
+
+    std::string subtitle = "ผู้เล่นคนสุดท้ายที่ยังไม่ระเบิด";
+    int subtitleWidth = MeasureUiText(subtitle.c_str(), 22);
+    DrawUiText(subtitle.c_str(), static_cast<int>(panel.x + (panel.width - subtitleWidth) / 2), static_cast<int>(panel.y + 232), 22, Color { 229, 219, 203, 255 });
+
+    DrawUiText("หน้าจอนี้จะค้างไว้จนกว่าจะกดปุ่มด้านล่าง", static_cast<int>(panel.x + 178), static_cast<int>(panel.y + 286), 18, Color { 205, 195, 181, 255 });
+    return drawButton(Rectangle { w / 2.0f - 105, panel.y + panel.height - 72, 210, 44 }, "กลับหน้าแรก");
 }
 
 } // namespace
@@ -573,18 +625,18 @@ void CatBombApp::drawStartScreen()
     const int h = GetScreenHeight();
     const int w = GetScreenWidth();
 
-    DrawUiText("Cat Bomb", 54, 54, 58, RAYWHITE);
-    DrawUiText("C++ GUI card game", 58, 118, 24, Color { 255, 238, 207, 255 });
+    DrawUiText("แมวระเบิด", 54, 54, 58, RAYWHITE);
+    DrawUiText("เกมการ์ดแบบหน้าต่าง เขียนด้วยซีพลัสพลัส", 58, 118, 24, Color { 255, 238, 207, 255 });
     if (drawHelpButton(static_cast<float>(w))) {
         showCardHelp_ = true;
     }
 
     Rectangle panel { 54, h - 220.0f, 420, 150 };
     drawPanel(panel, Color { 38, 35, 32, 220 });
-    DrawUiText("Ready to play?", static_cast<int>(panel.x + 26), static_cast<int>(panel.y + 24), 28, RAYWHITE);
-    DrawUiText("Set players and names before the first draw.", static_cast<int>(panel.x + 26), static_cast<int>(panel.y + 64), 17, Color { 229, 219, 203, 255 });
+    DrawUiText("พร้อมเล่นหรือยัง?", static_cast<int>(panel.x + 26), static_cast<int>(panel.y + 24), 28, RAYWHITE);
+    DrawUiText("ตั้งค่าผู้เล่นและชื่อก่อนเริ่มจั่ว", static_cast<int>(panel.x + 26), static_cast<int>(panel.y + 64), 17, Color { 229, 219, 203, 255 });
 
-    if (drawButton(Rectangle { panel.x + 26, panel.y + 96, 180, 42 }, "Start Game")) {
+    if (drawButton(Rectangle { panel.x + 26, panel.y + 96, 180, 42 }, "เริ่มตั้งค่า")) {
         screen_ = Screen::Setup;
         activeNameIndex_ = 0;
     }
@@ -600,14 +652,14 @@ void CatBombApp::handleNameInput()
 
     int codepoint = GetCharPressed();
     while (codepoint > 0) {
-        if (codepoint >= 32 && codepoint <= 126 && name.size() < 18) {
-            name.push_back(static_cast<char>(codepoint));
+        if (codepoint >= 32 && name.size() < 54) {
+            appendUtf8Codepoint(name, codepoint);
         }
         codepoint = GetCharPressed();
     }
 
     if (IsKeyPressed(KEY_BACKSPACE) && !name.empty()) {
-        name.pop_back();
+        popUtf8Codepoint(name);
     }
     if (IsKeyPressed(KEY_TAB) || IsKeyPressed(KEY_DOWN)) {
         activeNameIndex_ = (activeNameIndex_ + 1) % playerCount_;
@@ -633,10 +685,10 @@ void CatBombApp::drawSetupScreen()
     Rectangle panel { w / 2.0f - 340, h / 2.0f - 280, 680, 560 };
     drawPanel(panel, Color { 40, 36, 32, 232 });
 
-    DrawUiText("Game Setup", static_cast<int>(panel.x + 32), static_cast<int>(panel.y + 28), 34, RAYWHITE);
-    DrawUiText("Choose player count and edit each player name.", static_cast<int>(panel.x + 34), static_cast<int>(panel.y + 72), 18, Color { 229, 219, 203, 255 });
+    DrawUiText("ตั้งค่าเกม", static_cast<int>(panel.x + 32), static_cast<int>(panel.y + 28), 34, RAYWHITE);
+    DrawUiText("เลือกจำนวนผู้เล่น แล้วแก้ชื่อแต่ละคนได้", static_cast<int>(panel.x + 34), static_cast<int>(panel.y + 72), 18, Color { 229, 219, 203, 255 });
 
-    DrawUiText("Players", static_cast<int>(panel.x + 34), static_cast<int>(panel.y + 124), 22, RAYWHITE);
+    DrawUiText("จำนวนผู้เล่น", static_cast<int>(panel.x + 34), static_cast<int>(panel.y + 124), 22, RAYWHITE);
     float selectorX = panel.x + 150;
     for (int count = 2; count <= 4; ++count) {
         bool selected = playerCount_ == count;
@@ -661,7 +713,7 @@ void CatBombApp::drawSetupScreen()
         DrawRectangleRounded(input, 0.10f, 8, active ? Color { 255, 238, 207, 245 } : Color { 236, 220, 198, 218 });
         DrawRectangleRoundedLinesEx(input, 0.10f, 8, active ? 3.0f : 1.5f, active ? Color { 244, 202, 82, 255 } : Color { 91, 78, 66, 255 });
 
-        std::string label = "P" + std::to_string(i + 1);
+        std::string label = "คน " + std::to_string(i + 1);
         DrawUiText(label.c_str(), static_cast<int>(input.x + 16), static_cast<int>(input.y + 14), 20, Color { 57, 47, 39, 255 });
         DrawUiText(playerNames_[i].c_str(), static_cast<int>(input.x + 64), static_cast<int>(input.y + 14), 20, Color { 31, 28, 25, 255 });
         if (active && (GetTime() - std::floor(GetTime())) < 0.55) {
@@ -672,10 +724,10 @@ void CatBombApp::drawSetupScreen()
 
     Rectangle backButton { panel.x + 34, panel.y + panel.height - 72, 150, 44 };
     Rectangle startButton { panel.x + panel.width - 234, panel.y + panel.height - 72, 200, 44 };
-    if (drawButton(backButton, "Back")) {
+    if (drawButton(backButton, "ย้อนกลับ")) {
         screen_ = Screen::Start;
     }
-    if (drawButton(startButton, "Begin Match")) {
+    if (drawButton(startButton, "เริ่มเกม")) {
         startConfiguredGame();
     }
     if (showCardHelp_) {
@@ -688,7 +740,7 @@ void CatBombApp::startConfiguredGame()
     std::vector<std::string> names;
     names.reserve(playerCount_);
     for (int i = 0; i < playerCount_; ++i) {
-        names.push_back(playerNames_[i].empty() ? "Player " + std::to_string(i + 1) : playerNames_[i]);
+        names.push_back(playerNames_[i].empty() ? "ผู้เล่น " + std::to_string(i + 1) : playerNames_[i]);
     }
     GameManager::instance().startGame(names);
     screen_ = Screen::Game;
@@ -707,8 +759,8 @@ void CatBombApp::drawCardHelpModal()
         630
     };
     drawPanel(panel, Color { 42, 38, 34, 246 });
-    DrawUiText("Card Guide", static_cast<int>(panel.x + 28), static_cast<int>(panel.y + 24), 34, RAYWHITE);
-    DrawUiText("Quick reference for every card and cat combo.", static_cast<int>(panel.x + 30), static_cast<int>(panel.y + 66), 18, Color { 229, 219, 203, 255 });
+    DrawUiText("คู่มือการ์ด", static_cast<int>(panel.x + 28), static_cast<int>(panel.y + 24), 34, RAYWHITE);
+    DrawUiText("สรุปความสามารถของการ์ดและคอมโบแมวทั้งหมด", static_cast<int>(panel.x + 30), static_cast<int>(panel.y + 66), 18, Color { 229, 219, 203, 255 });
 
     struct HelpLine {
         const char* name;
@@ -716,27 +768,27 @@ void CatBombApp::drawCardHelpModal()
     };
 
     const std::array<HelpLine, 9> cards {
-        HelpLine { "Boom", "Draw it and you explode unless you have Defuse." },
-        HelpLine { "Defuse", "Used automatically against Boom, then place Boom back." },
-        HelpLine { "Skip", "End your turn without drawing a card." },
-        HelpLine { "Favor", "Choose a player and steal one random card." },
-        HelpLine { "Nope", "Cancel Favor or a cat combo when prompted." },
-        HelpLine { "Shuffle", "Shuffle the draw pile." },
-        HelpLine { "See the Future", "Peek at the top three cards." },
-        HelpLine { "Draw from Bottom", "Draw the bottom card and end your turn." },
-        HelpLine { "Cat1 - Cat5", "Normal cat cards. Use them only for combos." }
+        HelpLine { "ระเบิด", "ถ้าจั่วได้แล้วไม่มีการ์ดกู้ระเบิด คุณจะออกจากเกม" },
+        HelpLine { "กู้ระเบิด", "ใช้เองเมื่อจั่วเจอระเบิด แล้วเลือกตำแหน่งวางระเบิดกลับ" },
+        HelpLine { "ข้ามตา", "จบตาทันทีโดยไม่ต้องจั่วการ์ด" },
+        HelpLine { "ขอความช่วยเหลือ", "เลือกผู้เล่นหนึ่งคน แล้วขโมยการ์ดสุ่มหนึ่งใบ" },
+        HelpLine { "ยกเลิก", "ยกเลิกการ์ดขอความช่วยเหลือหรือคอมโบแมวเมื่อระบบถาม" },
+        HelpLine { "สับกอง", "สับกองจั่วใหม่ทั้งหมด" },
+        HelpLine { "ดูอนาคต", "แอบดูการ์ด 3 ใบบนสุดของกองจั่ว" },
+        HelpLine { "จั่วจากล่างสุด", "จั่วการ์ดใบล่างสุด แล้วจบตา" },
+        HelpLine { "แมว 1 - แมว 5", "การ์ดแมวธรรมดา ใช้ทำคอมโบเท่านั้น" }
     };
 
     const std::array<HelpLine, 3> combos {
-        HelpLine { "2 same cats", "Discard two matching cats to steal a random card." },
-        HelpLine { "3 same cats", "Discard three matching cats, name a card, steal it if found." },
-        HelpLine { "5 different cats", "Discard Cat1-Cat5 to take one card from discard." }
+        HelpLine { "แมวเหมือน 2 ใบ", "ทิ้งแมวชนิดเดียวกัน 2 ใบ เพื่อขโมยการ์ดแบบสุ่ม" },
+        HelpLine { "แมวเหมือน 3 ใบ", "ทิ้งแมวชนิดเดียวกัน 3 ใบ เลือกชื่อการ์ด แล้วขโมยถ้าเป้าหมายมี" },
+        HelpLine { "แมวต่าง 5 ใบ", "ทิ้งแมว 1-5 อย่างละใบ เพื่อหยิบการ์ดหนึ่งใบจากกองทิ้ง" }
     };
 
     float leftX = panel.x + 34;
     float rightX = panel.x + 462;
     float y = panel.y + 112;
-    DrawUiText("Cards", static_cast<int>(leftX), static_cast<int>(y), 24, RAYWHITE);
+    DrawUiText("การ์ด", static_cast<int>(leftX), static_cast<int>(y), 24, RAYWHITE);
     y += 38;
     for (const auto& line : cards) {
         DrawUiText(line.name, static_cast<int>(leftX), static_cast<int>(y), 19, Color { 255, 226, 121, 255 });
@@ -745,7 +797,7 @@ void CatBombApp::drawCardHelpModal()
     }
 
     y = panel.y + 112;
-    DrawUiText("Combos", static_cast<int>(rightX), static_cast<int>(y), 24, RAYWHITE);
+    DrawUiText("คอมโบ", static_cast<int>(rightX), static_cast<int>(y), 24, RAYWHITE);
     y += 38;
     for (const auto& line : combos) {
         DrawUiText(line.name, static_cast<int>(rightX), static_cast<int>(y), 19, Color { 255, 226, 121, 255 });
@@ -753,9 +805,9 @@ void CatBombApp::drawCardHelpModal()
         y += 92;
     }
 
-    DrawUiText("Image filenames: cat1.png to cat5.png are five different normal cat cards.", static_cast<int>(rightX), static_cast<int>(panel.y + panel.height - 108), 16, Color { 229, 219, 203, 255 });
+    DrawUiText("ไฟล์ cat1.png ถึง cat5.png คือการ์ดแมวธรรมดา 5 แบบที่ต่างกัน", static_cast<int>(rightX), static_cast<int>(panel.y + panel.height - 108), 16, Color { 229, 219, 203, 255 });
 
-    if (drawButton(Rectangle { panel.x + panel.width - 142, panel.y + panel.height - 62, 108, 38 }, "Close")) {
+    if (drawButton(Rectangle { panel.x + panel.width - 142, panel.y + panel.height - 62, 108, 38 }, "ปิด")) {
         showCardHelp_ = false;
     }
 }
@@ -769,8 +821,8 @@ void CatBombApp::drawGameScreen()
     const int h = GetScreenHeight();
 
     DrawRectangle(0, 0, w, 58, Color { 192, 64, 61, 222 });
-    DrawUiText("Cat Bomb", 24, 16, 30, RAYWHITE);
-    std::string subtitle = std::to_string(gm.players.size()) + "-player local C++ GUI";
+    DrawUiText("แมวระเบิด", 24, 16, 30, RAYWHITE);
+    std::string subtitle = "ผู้เล่น " + std::to_string(gm.players.size()) + " คน";
     int subtitleWidth = MeasureUiText(subtitle.c_str(), 18);
     if (drawHelpButton(static_cast<float>(w))) {
         showCardHelp_ = true;
