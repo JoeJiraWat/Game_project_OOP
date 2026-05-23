@@ -9,6 +9,8 @@ tech stack ใช้ raylib เป็น GUI
 ```sh
 ./build/catbomb
 ```
+(Mac OS)
+หรือสามารถเข้าไปรัน ไฟล์ catbomb ในfolder build ได้เลย
 
 ## วิธีเล่น หรือ กฏการเล่น
 
