@@ -4,18 +4,13 @@
 tech stack ใช้ raylib เป็น GUI
 และยึดโครงสร้างคลาสตาม Class Diagram ที่ให้มา
 
-## วิธี Build
-
-```sh
-cmake -S . -B build
-cmake --build build
-```
-
 ## วิธี Run
 
 ```sh
 ./build/catbomb
 ```
+(Mac OS)
+สามารถเข้าไปรัน ไฟล์ catbomb ในfolder build ได้เลย
 
 ## วิธีเล่น หรือ กฏการเล่น
 

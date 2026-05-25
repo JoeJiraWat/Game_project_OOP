@@ -9,11 +9,26 @@ set(CMAKE_CXX_EXTENSIONS OFF)
 find_package(PkgConfig REQUIRED)
 pkg_check_modules(RAYLIB REQUIRED raylib)
 
-add_executable(catbomb
-    src/AssetManager.cpp
-    src/GameUi.cpp
-    src/main.cpp
-)
+if(APPLE)
+    add_executable(catbomb MACOSX_BUNDLE
+        src/AssetManager.cpp
+        src/GameUi.cpp
+        src/main.cpp
+    )
+    # ตั้งค่าข้อมูลของ App Bundle (.app)
+    set_target_properties(catbomb PROPERTIES
+        MACOSX_BUNDLE_BUNDLE_NAME "Cat Bomb Game"
+        MACOSX_BUNDLE_GUI_IDENTIFIER "com.yourname.catbomb"
+        MACOSX_BUNDLE_BUNDLE_VERSION "1.0.0"
+        MACOSX_BUNDLE_SHORT_VERSION_STRING "1.0.0"
+    )
+else()
+    add_executable(catbomb
+        src/AssetManager.cpp
+        src/GameUi.cpp
+        src/main.cpp
+    )
+endif()
 
 target_include_directories(catbomb PRIVATE src ${RAYLIB_INCLUDE_DIRS})
 target_link_directories(catbomb PRIVATE ${RAYLIB_LIBRARY_DIRS})
