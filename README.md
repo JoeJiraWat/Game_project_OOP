@@ -43,6 +43,10 @@ cmake --build build
 - สามารถใช้ชื่อของผู้เล่นก่อนเกมเริ่มได้
 - Action ในเกมใช้ cursorMouse กด
 
+
+
+
+
 โค้ดยังคงชื่อคลาสและหน้าที่หลักตาม Diagram เช่น `GameManager`, `Player`, `NetworkManager`, `Card`, `CardData`, `CardType`, `Effect`, `CatType`, `SpecialRule` และกติกาคอมโบแมวทั้งสามแบบ
 
 ## โครงสร้างไฟล์
